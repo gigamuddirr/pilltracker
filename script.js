@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear existing grid
         weekGrid.innerHTML = '';
         
-        // Add header row with current week dates
+        // Add header row
         const headerRow = document.createElement('div');
         headerRow.className = 'pill-row';
         headerRow.innerHTML = '<div class="week-header"></div>';
@@ -105,14 +105,13 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < 7; i++) {
                 const currentDate = new Date(startOfWeek);
                 currentDate.setDate(startOfWeek.getDate() + i);
-                // Ensure we're using local timezone midnight for consistency
                 currentDate.setHours(0, 0, 0, 0);
+                
+                // Create dateString in a consistent way
                 const dateString = currentDate.toISOString().split('T')[0];
                 
                 const now = new Date();
                 now.setHours(0, 0, 0, 0);
-                const isToday = currentDate.getTime() === now.getTime();
-                const isFuture = currentDate > now;
                 
                 let cellClass = 'day-cell';
                 let content = '•';
@@ -120,10 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (weeklyHistory[dateString]?.[pill.name]) {
                     cellClass += ' taken';
                     content = '✓';
-                } else if (!isFuture && currentDate < now) {
+                } else if (currentDate < now) {
                     cellClass += ' missed';
                     content = '×';
-                } else if (isFuture) {
+                } else if (currentDate > now) {
                     cellClass += ' future';
                 }
                 
@@ -157,7 +156,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const checkbox = div.querySelector('input[type="checkbox"]');
         checkbox.addEventListener('change', (e) => {
-            const dateString = selectedDate.toISOString().split('T')[0];
+            // Create a new date object from selectedDate and set to midnight
+            const date = new Date(selectedDate);
+            date.setHours(0, 0, 0, 0);
+            const dateString = date.toISOString().split('T')[0];
+            
             const weeklyHistory = getWeeklyHistory();
             
             if (!weeklyHistory[dateString]) {

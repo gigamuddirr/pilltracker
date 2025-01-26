@@ -48,8 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to get the start of the week (Sunday)
     function getStartOfWeek(date) {
         const newDate = new Date(date);
+        // Get the current day (0-6, where 0 is Sunday)
         const day = newDate.getDay();
+        // Subtract days to get to the previous Sunday
         newDate.setDate(newDate.getDate() - day);
+        // Set to start of day
         newDate.setHours(0, 0, 0, 0);
         return newDate;
     }
@@ -72,15 +75,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear existing grid
         weekGrid.innerHTML = '';
         
-        // Add header row
+        // Add header row with current week dates
         const headerRow = document.createElement('div');
         headerRow.className = 'pill-row';
         headerRow.innerHTML = '<div class="week-header"></div>';
         
-        // Add day headers
-        daysOfWeek.forEach(day => {
-            headerRow.innerHTML += `<div class="week-header">${day}</div>`;
-        });
+        // Add day headers with dates
+        for (let i = 0; i < 7; i++) {
+            const currentDate = new Date(startOfWeek);
+            currentDate.setDate(startOfWeek.getDate() + i);
+            const dayName = daysOfWeek[i];
+            const dayDate = currentDate.getDate();
+            headerRow.innerHTML += `<div class="week-header">${dayName}<br>${dayDate}</div>`;
+        }
         weekGrid.appendChild(headerRow);
 
         // Get all pills
@@ -98,10 +105,14 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < 7; i++) {
                 const currentDate = new Date(startOfWeek);
                 currentDate.setDate(startOfWeek.getDate() + i);
+                // Ensure we're using local timezone midnight for consistency
+                currentDate.setHours(0, 0, 0, 0);
                 const dateString = currentDate.toISOString().split('T')[0];
                 
-                const isToday = currentDate.toDateString() === new Date().toDateString();
-                const isFuture = currentDate > new Date();
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                const isToday = currentDate.getTime() === now.getTime();
+                const isFuture = currentDate > now;
                 
                 let cellClass = 'day-cell';
                 let content = '•';
@@ -109,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (weeklyHistory[dateString]?.[pill.name]) {
                     cellClass += ' taken';
                     content = '✓';
-                } else if (!isFuture && currentDate < new Date()) {
+                } else if (!isFuture && currentDate < now) {
                     cellClass += ' missed';
                     content = '×';
                 } else if (isFuture) {
@@ -127,8 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Create pill element
-    function createPillElement(pill) {
+    // Modify createPillElement to add delete button
+    function createPillElement(pill, taken) {
         const div = document.createElement('div');
         div.className = 'pill-item';
         div.innerHTML = `
@@ -136,28 +147,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="pill-name">${pill.name}</div>
                 <div class="pill-time">${pill.time}</div>
             </div>
-            <div class="checkbox-wrapper">
-                <input type="checkbox" ${pill.taken ? 'checked' : ''}>
+            <div class="pill-actions">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" ${taken ? 'checked' : ''}>
+                </div>
+                <button class="delete-btn">×</button>
             </div>
         `;
 
-        // Add event listener for checkbox
         const checkbox = div.querySelector('input[type="checkbox"]');
         checkbox.addEventListener('change', (e) => {
-            pill.taken = e.target.checked;
-            savePills();
-            
-            // Update weekly history
-            const today = new Date().toISOString().split('T')[0];
+            const dateString = selectedDate.toISOString().split('T')[0];
             const weeklyHistory = getWeeklyHistory();
             
-            if (!weeklyHistory[today]) {
-                weeklyHistory[today] = {};
+            if (!weeklyHistory[dateString]) {
+                weeklyHistory[dateString] = {};
             }
             
-            weeklyHistory[today][pill.name] = e.target.checked;
+            weeklyHistory[dateString][pill.name] = e.target.checked;
             saveWeeklyHistory(weeklyHistory);
             updateWeeklyView();
+        });
+
+        // Add delete button handler
+        const deleteBtn = div.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', () => {
+            if (confirm(`Are you sure you want to delete ${pill.name}?`)) {
+                // Remove from pills list
+                const pills = JSON.parse(localStorage.getItem('pills') || '[]');
+                const updatedPills = pills.filter(p => p.name !== pill.name);
+                localStorage.setItem('pills', JSON.stringify(updatedPills));
+
+                // Remove from weekly history
+                const weeklyHistory = getWeeklyHistory();
+                Object.keys(weeklyHistory).forEach(date => {
+                    if (weeklyHistory[date][pill.name]) {
+                        delete weeklyHistory[date][pill.name];
+                    }
+                });
+                saveWeeklyHistory(weeklyHistory);
+
+                // Update UI
+                div.remove();
+                updateWeeklyView();
+            }
         });
 
         return div;
@@ -313,37 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const pillElement = createPillElement(pill, weeklyHistory[dateString]?.[pill.name] || false);
             pillsContainer.appendChild(pillElement);
         });
-    }
-
-    // Modify createPillElement to handle specific dates
-    function createPillElement(pill, taken) {
-        const div = document.createElement('div');
-        div.className = 'pill-item';
-        div.innerHTML = `
-            <div class="pill-info">
-                <div class="pill-name">${pill.name}</div>
-                <div class="pill-time">${pill.time}</div>
-            </div>
-            <div class="checkbox-wrapper">
-                <input type="checkbox" ${taken ? 'checked' : ''}>
-            </div>
-        `;
-
-        const checkbox = div.querySelector('input[type="checkbox"]');
-        checkbox.addEventListener('change', (e) => {
-            const dateString = selectedDate.toISOString().split('T')[0];
-            const weeklyHistory = getWeeklyHistory();
-            
-            if (!weeklyHistory[dateString]) {
-                weeklyHistory[dateString] = {};
-            }
-            
-            weeklyHistory[dateString][pill.name] = e.target.checked;
-            saveWeeklyHistory(weeklyHistory);
-            updateWeeklyView();
-        });
-
-        return div;
     }
 
     // Event listeners for calendar

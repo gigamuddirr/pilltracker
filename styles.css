@@ -337,4 +337,31 @@ h1 {
 
 .today-btn:hover {
     background-color: #1557b0;
+}
+
+/* Add these new styles */
+.pill-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #EA4335;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.delete-btn:hover {
+    background-color: #ffebee;
 } 

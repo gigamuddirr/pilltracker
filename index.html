@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pill Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Daily Pill Tracker</h1>
+        
+        <div class="pill-tracker">
+            <div class="date-display">
+                <button id="datePickerBtn" class="date-picker-btn">
+                    <span id="currentDate"></span>
+                    <span class="arrow-down">▼</span>
+                </button>
+                <div id="calendar" class="calendar">
+                    <div class="calendar-header">
+                        <button id="prevMonth">◀</button>
+                        <span id="monthYear"></span>
+                        <button id="nextMonth">▶</button>
+                    </div>
+                    <div class="weekdays">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div>
+                        <div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div id="calendarDays" class="calendar-days"></div>
+                    <button id="todayBtn" class="today-btn">Today</button>
+                </div>
+            </div>
+            
+            <div class="pills-container" id="pillsContainer">
+                <!-- Pills will be added here dynamically -->
+            </div>
+
+            <button id="addPillBtn" class="add-pill-btn">Add New Medication</button>
+        </div>
+
+        <!-- Add Weekly View -->
+        <div class="weekly-view">
+            <h2>Weekly Overview</h2>
+            <div class="week-grid" id="weekGrid">
+                <!-- Weekly data will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Pill Modal -->
+    <div id="addPillModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Medication</h2>
+            <input type="text" id="pillName" placeholder="Medication Name">
+            <input type="time" id="pillTime" placeholder="Time to take">
+            <button id="savePillBtn">Save</button>
+            <button id="cancelPillBtn">Cancel</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
